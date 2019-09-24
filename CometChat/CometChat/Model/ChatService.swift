@@ -2,7 +2,7 @@
 //  ChatService.swift
 //  CometChat
 //
-//  Created by Marin Benčević on 09/08/2019.
+//  Created by Marin Benčević on 25/09/2019.
 //  Copyright © 2019 marinbenc. All rights reserved.
 //
 
@@ -14,9 +14,8 @@ extension String: Error {}
 final class ChatService {
   
   private enum Constants {
-    #warning("Don't forget to set your API key and app ID here!")
-    static let cometChatAPIKey = "API_KEY"
-    static let cometChatAppID = "APP_ID"
+    static let cometChatAPIKey = "e8fd195a35b515c92853aca3fdfe152c62639cfa"
+    static let cometChatAppID = "8839f5c1d57779"
   }
   
   static let shared = ChatService()
@@ -27,21 +26,24 @@ final class ChatService {
       appId: Constants.cometChatAppID,
       onSuccess: { isSuccess in
         print("CometChat connected successfully: \(isSuccess)")
-      },
+    },
       onError: { error in
         print(error)
-      })
+    })
   }
   
   private var user: User?
-  var onRecievedMessage: ((Message)-> Void)?
-  var onUserStatusChanged: ((User)-> Void)?
   
-  func login(email: String, onComplete: @escaping (Result<User, Error>)-> Void) {
+  var onUserStatusChanged: ((User)-> Void)?
+  var onReceivedMessage: ((Message)-> Void)?
+  
+  func login(
+    email: String,
+    onComplete: @escaping (Result<User, Error>)-> Void) {
     
-    CometChat.messagedelegate = self
     CometChat.userdelegate = self
-    
+    CometChat.messagedelegate = self
+
     CometChat.login(
       UID: email,
       apiKey: Constants.cometChatAPIKey,
@@ -58,32 +60,6 @@ final class ChatService {
         DispatchQueue.main.async {
           onComplete(.failure("Error logging in"))
         }
-      })
-  }
-  
-  func send(message: String, to reciever: User) {
-    guard let user = user else {
-      return
-    }
-    
-    let textMessage = TextMessage(
-      receiverUid: reciever.id,
-      text: message,
-      messageType: .text,
-      receiverType: .user)
-    
-    CometChat.sendTextMessage(
-      message: textMessage,
-      onSuccess: { [weak self] _ in
-        guard let self = self else { return }
-        print("Message sent")
-        DispatchQueue.main.async {
-          self.onRecievedMessage?(Message(user: user, content: message, isIncoming: false))
-        }
-      },
-      onError: { error in
-        print("Error sending message:")
-        print(error?.errorDescription ?? "")
     })
   }
   
@@ -98,14 +74,48 @@ final class ChatService {
         }
       },
       onError: { error in
-        onComplete([])
+        DispatchQueue.main.async {
+          onComplete([])
+        }
         print("Fetching users failed with error:")
         print(error?.errorDescription ?? "unknown")
-      })
+    })
+  }
+  
+  func send(message: String, to receiver: User) {
+    guard let user = user else {
+      return
+    }
+    
+    let textMessage = TextMessage(
+      receiverUid: receiver.id,
+      text: message,
+      messageType: .text,
+      receiverType: .user)
+    
+    CometChat.sendTextMessage(
+      message: textMessage,
+      onSuccess: { [weak self] _ in
+        guard let self = self else { return }
+        print("Message sent")
+        DispatchQueue.main.async {
+          self.onReceivedMessage?(Message(
+            user: user,
+            content: message,
+            isIncoming: false))
+        }
+      },
+      onError: { error in
+        print("Error sending message:")
+        print(error?.errorDescription ?? "")
+    })
   }
   
   private var messagesRequest: MessagesRequest?
-  func getMessages(from sender: User, onComplete: @escaping ([Message])-> Void) {
+  func getMessages(
+    from sender: User,
+    onComplete: @escaping ([Message])-> Void) {
+    
     guard let user = user else {
       return
     }
@@ -136,15 +146,7 @@ final class ChatService {
       onError: { error in
         print("Fetching messages failed with error:")
         print(error?.errorDescription ?? "unknown")
-      })
-  }
-}
-
-extension ChatService: CometChatMessageDelegate {
-  func onTextMessageReceived(textMessage: TextMessage) {
-    DispatchQueue.main.async {
-      self.onRecievedMessage?(Message(textMessage, isIncoming: true))
-    }
+    })
   }
 }
 
@@ -159,6 +161,14 @@ extension ChatService: CometChatUserDelegate {
   func onUserOffline(user cometChatUser: CometChatPro.User) {
     DispatchQueue.main.async {
       self.onUserStatusChanged?(User(cometChatUser))
+    }
+  }
+}
+
+extension ChatService: CometChatMessageDelegate {
+  func onTextMessageReceived(textMessage: TextMessage) {
+    DispatchQueue.main.async {
+      self.onReceivedMessage?(Message(textMessage, isIncoming: true))
     }
   }
 }

@@ -17,8 +17,6 @@ final class ChatViewController: UIViewController {
     static let placeholderMessage = "Type something"
   }
   
-  public var reciever: User!
-  
   // MARK: - Outlets
   
   @IBOutlet weak var tableView: UITableView!
@@ -46,38 +44,32 @@ final class ChatViewController: UIViewController {
     textView.endEditing(true)
     addTextViewPlaceholer()
     scrollToLastCell()
-    
-    ChatService.shared.send(message: message, to: reciever)
   }
   
-  var messages: [Message] = [] {
-    didSet {
-      emptyChatView.isHidden = !messages.isEmpty
-      tableView.reloadData()
-    }
-  }
+  var messages: [Message] = [
+    Message(
+      user: User(id: "1", name: "Jamie", image: nil, isOnline: true),
+      content: "Hey, did you see that cool chat tutorial?",
+      isIncoming: true),
+    Message(
+      user: User(id: "2", name: "Sandra", image: nil, isOnline: true),
+      content: "Hey! No, where is it?",
+      isIncoming: false),
+    Message(
+      user: User(id: "1", name: "Jamie", image: nil, isOnline: true),
+      content: "It's on CometChat's blog!",
+      isIncoming: true),
+  ]
   
   // MARK: - Lifecycle
   
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    title = reciever.name
-    
-    emptyChatView.isHidden = false
+    emptyChatView.isHidden = true
     
     setUpTableView()
     setUpTextView()
-    startObservingKeyboard()
-    
-    ChatService.shared.onRecievedMessage = { [weak self] message in
-      guard let self = self else { return }
-      let isFromReciever = message.user == self.reciever
-      if !message.isIncoming || isFromReciever {
-        self.messages.append(message)
-        self.scrollToLastCell()
-      }
-    }
     
     tableView.dataSource = self
   }
@@ -85,11 +77,6 @@ final class ChatViewController: UIViewController {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     addTextViewPlaceholer()
-    
-    ChatService.shared.getMessages(from: reciever) { [weak self] messages in
-      self?.messages = messages
-      self?.scrollToLastCell()
-    }
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -98,73 +85,6 @@ final class ChatViewController: UIViewController {
     let navigationBar = navigationController?.navigationBar
     navigationBar?.shadowImage = nil
   }
-  
-  
-  // MARK: - Keyboard
-  
-  private func startObservingKeyboard() {
-    let notificationCenter = NotificationCenter.default
-    notificationCenter.addObserver(
-      forName: UIResponder.keyboardWillShowNotification,
-      object: nil,
-      queue: nil,
-      using: keyboardWillAppear)
-    notificationCenter.addObserver(
-      forName: UIResponder.keyboardWillHideNotification,
-      object: nil,
-      queue: nil,
-      using: keyboardWillDisappear)
-  }
-  
-  deinit {
-    let notificationCenter = NotificationCenter.default
-    notificationCenter.removeObserver(
-      self,
-      name: UIResponder.keyboardWillShowNotification,
-      object: nil)
-    notificationCenter.removeObserver(
-      self,
-      name: UIResponder.keyboardWillHideNotification,
-      object: nil)
-  }
-  
-  private func keyboardWillAppear(_ notification: Notification) {
-    let key = UIResponder.keyboardFrameEndUserInfoKey
-    guard let keyboardFrame = notification.userInfo?[key] as? CGRect else {
-      return
-    }
-    
-    let safeAreaBottom = view.safeAreaLayoutGuide.layoutFrame.maxY
-    let viewHeight = view.bounds.height
-    let safeAreaOffset = viewHeight - safeAreaBottom
-    
-    let lastVisibleCell = tableView.indexPathsForVisibleRows?.last
-    
-    UIView.animate(
-      withDuration: 0.3,
-      delay: 0,
-      options: [.curveEaseInOut],
-      animations: {
-        self.textAreaBottom.constant = -keyboardFrame.height + safeAreaOffset
-        self.view.layoutIfNeeded()
-        if let lastVisibleCell = lastVisibleCell {
-          self.tableView.scrollToRow(
-            at: lastVisibleCell, at: .bottom, animated: false)
-        }
-    })
-  }
-  
-  private func keyboardWillDisappear(_ notification: Notification) {
-    UIView.animate(
-      withDuration: 0.3,
-      delay: 0,
-      options: [.curveEaseInOut],
-      animations: {
-        self.textAreaBottom.constant = 0
-        self.view.layoutIfNeeded()
-    })
-  }
-  
   
   // MARK: - Set up
   

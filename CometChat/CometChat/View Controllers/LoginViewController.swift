@@ -11,7 +11,7 @@ import UIKit
 final class LoginViewController: UIViewController {
   
   private enum Constants {
-    static let showChat = "showContacts"
+    static let showContacts = "showContacts"
   }
   
   @IBOutlet weak var emailTextField: UITextField!
@@ -42,20 +42,7 @@ final class LoginViewController: UIViewController {
   }
   
   @IBAction func loginButtonTapped(_ sender: Any) {
-    let email = emailTextField.text!
-    guard !email.isEmpty else {
-      return
-    }
-    ChatService.shared.login(email: email) { [weak self] result in
-      DispatchQueue.main.async {
-        switch result {
-        case .success:
-          self?.performSegue(withIdentifier: Constants.showChat, sender: nil)
-        case .failure:
-          self?.showError("An error occurred.")
-        }
-      }
-    }
+    performSegue(withIdentifier: Constants.showContacts, sender: nil)
   }
   
   private func showError(_ error: String) {
