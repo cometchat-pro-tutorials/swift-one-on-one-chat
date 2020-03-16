@@ -14,24 +14,26 @@ extension String: Error {}
 final class ChatService {
   
   private enum Constants {
-    #warning("Don't forget to set your API key and app ID here!")
-    static let cometChatAPIKey = "API_KEY"
-    static let cometChatAppID = "APP_ID"
+     #warning("Don't forget to set your , REGION Code, API key and app ID here!")
+      static let cometChatAPIKey = "ENTER API KEY"
+      static let cometChatAppID = "ENTER APP ID"
+      static let cometChatRegionCode = "ENTER REGION CODE"
   }
   
   static let shared = ChatService()
   private init() {}
   
   static func initialize() {
-    CometChat(
-      appId: Constants.cometChatAppID,
-      onSuccess: { isSuccess in
-        print("CometChat connected successfully: \(isSuccess)")
-      },
-      onError: { error in
-        print(error)
-      })
-  }
+     
+     let settings = AppSettings.AppSettingsBuilder().setRegion(region: Constants.cometChatRegionCode).subscribePresenceForAllUsers().build()
+     
+     CometChat.init(appId: Constants.cometChatAppID, appSettings: settings, onSuccess: { isSuccess in
+         print("CometChat connected successfully: \(isSuccess)")
+     },
+       onError: { error in
+         print(error)
+     })
+   }
   
   private var user: User?
   var onRecievedMessage: ((Message)-> Void)?
@@ -69,7 +71,6 @@ final class ChatService {
     let textMessage = TextMessage(
       receiverUid: reciever.id,
       text: message,
-      messageType: .text,
       receiverType: .user)
     
     CometChat.sendTextMessage(

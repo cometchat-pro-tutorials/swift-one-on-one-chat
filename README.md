@@ -12,9 +12,9 @@ This example shows how to build an anonymous group chat with Swift:
 
 This demo uses:
 
-* CometChatPro 1.8.8
+* CometChatPro 2.0.7
 * Swift 5
-* Xcode 10.2.1
+* Xcode 11.2.1 or Higher
 
 ## Running the demo
 
@@ -25,9 +25,10 @@ To run the demo follow these steps:
 3. Once created, click **Explore**
 4. Go to the **API Keys** tab and click **Create API Key**
 5. Create an API key called "Swift 1 on 1 Chat Key" with **Full Access**
-4. Download the repository [here](https://github.com/cometchat-pro-tutorials/swift-one-on-one-chat/archive/master.zip) or by running `https://github.com/cometchat-pro-tutorials/swift-one-on-one-chat.git` and open **CometChat.xcworkspace** in Xcode
-5. Update the `Constants` in [ChatService.swift](https://github.com/cometchat-pro-tutorials/swift-one-on-one-chat/blob/master/CometChat/CometChat/Model/ChatService.swift) with your newly-created app ID and API key
-6. Run the app and login with one of the test users: superhero1, superhero2, superhero3, superhero4 or superhero5
+4. Download the repository [here](https://github.com/cometchat-pro-tutorials/swift-one-on-one-chat/archive/master.zip) or by running `https://github.com/cometchat-pro-tutorials/swift-one-on-one-chat.git`.
+5. Navigate to project directory and use `pod install` command to install the pods and open **CometChat.xcworkspace** in Xcode.
+6 Update the `Constants` in [ChatService.swift](https://github.com/cometchat-pro-tutorials/swift-one-on-one-chat/blob/master/CometChat/CometChat/Model/ChatService.swift) with your newly-created app ID, API key and Region code.
+7. Run the app and login with one of the test users: superhero1, superhero2, superhero3, superhero4 or superhero5
 
 Questions about running the demo? [Open an issue](https://github.com/cometchat-pro-tutorials/swift-one-on-one-chat/issues). We're here to help ✌️
 
